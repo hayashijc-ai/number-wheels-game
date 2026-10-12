@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <title>Number Wheels</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap');
+    :root{
+      color-scheme:light dark;
+      --bg:#e9f8ff;--bg2:#fff2c7;--ink:#173449;--muted:#516b7b;--panel:#fffdf7;
+      --line:#bfd7e4;--red:#ef5a55;--red-dark:#be3839;--blue:#197bbd;--blue-dark:#0a5486;
+      --yellow:#ffd84d;--green:#2faa74;--wheel:#f7fbfd;--wheel-edge:#aac9d8;--slot:#173449;
+      --shadow:0 14px 0 rgba(23,52,73,.11),0 18px 28px rgba(23,52,73,.12);
+    }
+    @media(prefers-color-scheme:dark){:root{
+      --bg:#102633;--bg2:#27311b;--ink:#f4fbff;--muted:#bed1db;--panel:#183747;
+      --line:#3e6172;--red:#ff7973;--red-dark:#ce4d4b;--blue:#56b4ec;--blue-dark:#2280b9;
+      --yellow:#ffdb55;--green:#52cc91;--wheel:#f4f8fa;--wheel-edge:#6d8998;--slot:#102a3a;
+      --shadow:0 12px 0 rgba(0,0,0,.22),0 18px 28px rgba(0,0,0,.2);
+    }}
+    *{box-sizing:border-box}[hidden]{display:none!important}html,body{margin:0;min-height:100%;font-family:Nunito,sans-serif;color:var(--ink);overscroll-behavior-y:none}
+    body{background:radial-gradient(circle at 15% 10%,rgba(255,255,255,.58),transparent 24%),linear-gradient(155deg,var(--bg),var(--bg2));min-height:100vh;min-height:100dvh;overflow-x:hidden}
+    body.game-active{height:100vh;height:100dvh;overflow:hidden}
+    button,select{font:inherit}button{touch-action:manipulation}
+    .app{width:min(100%,720px);min-height:100vh;min-height:100dvh;margin:auto;padding:max(14px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom));display:flex;flex-direction:column}
+    body.game-active .app{height:100vh;height:100dvh;min-height:0;overflow:hidden}
+    body.game-active .game{min-height:0;overflow:hidden}
+    .topline{display:flex;justify-content:flex-end;align-items:center;min-height:48px}
+    .sound{border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;min-width:48px;min-height:48px;font-size:22px;box-shadow:0 4px 0 rgba(23,52,73,.12)}
+    .screen{display:none;flex:1;animation:appear .24s ease}.screen.active{display:flex;flex-direction:column}
+    @keyframes appear{from{opacity:.2;transform:translateY(5px)}to{opacity:1;transform:none}}
+    h1,h2,h3,p{margin-top:0}h1,h2{font-family:Fredoka,sans-serif}h1{font-size:clamp(34px,9vw,54px);line-height:1.02;margin-bottom:10px}h2{font-size:clamp(29px,7vw,42px);line-height:1.08;margin-bottom:8px}p{font-size:18px;line-height:1.45;color:var(--muted)}
+    .setup{justify-content:center;padding-bottom:40px}.setup-intro{text-align:center;margin-bottom:20px}.tiny-wheels{font-size:38px;letter-spacing:5px;margin-bottom:8px;filter:drop-shadow(0 4px 0 rgba(23,52,73,.12))}
+    .setup-card{background:var(--panel);border:2px solid var(--line);border-radius:26px;padding:20px;box-shadow:var(--shadow)}
+    .field-title{font-family:Fredoka,sans-serif;font-size:20px;margin:0 0 11px}.cap-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:22px}
+    .cap{border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:13px;min-height:50px;font-weight:800;font-size:19px}.cap.selected{background:var(--yellow);color:#382e00;border-color:#d8a914;box-shadow:inset 0 -4px rgba(148,101,0,.17)}
+    .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}.mode{min-height:92px;text-align:left;padding:12px;border:2px solid var(--line);border-radius:17px;background:transparent;color:var(--ink)}.mode.selected{border-color:var(--blue);background:color-mix(in srgb,var(--blue) 12%,var(--panel));box-shadow:inset 0 0 0 2px var(--blue)}.mode strong{font-family:Fredoka,sans-serif;font-size:18px;display:block;margin-bottom:4px}.mode span{font-size:14px;color:var(--muted);line-height:1.2;display:block}
+    .primary,.secondary{border:0;border-radius:16px;min-height:58px;padding:12px 20px;font-family:Fredoka,sans-serif;font-size:21px;font-weight:700}.primary{color:#fff;background:var(--red);box-shadow:0 6px 0 var(--red-dark)}.primary:active{transform:translateY(3px);box-shadow:0 3px 0 var(--red-dark)}.primary:disabled{opacity:.5;filter:grayscale(.3)}.secondary{background:var(--panel);border:2px solid var(--line);color:var(--ink);box-shadow:0 4px 0 rgba(23,52,73,.13)}.full{width:100%}
+    .table-select{justify-content:center;text-align:center}.machine-shell{margin:22px auto 26px;background:var(--red);padding:16px;border-radius:28px;border:4px solid var(--red-dark);box-shadow:var(--shadow);width:min(100%,420px);position:relative}.machine-shell:before,.machine-shell:after{content:"";position:absolute;top:33%;width:18px;height:70px;background:var(--yellow);border:3px solid #bd8e09;border-radius:10px}.machine-shell:before{left:-18px}.machine-shell:after{right:-18px}
+    .reels{display:grid;grid-template-columns:1fr 48px 1fr 48px 1fr;gap:7px;align-items:center}.symbol{font-family:Fredoka,sans-serif;font-size:38px;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.2)}
+    .reel{height:126px;background:var(--wheel);border:5px solid var(--wheel-edge);border-radius:17px;overflow:hidden;position:relative;box-shadow:inset 0 10px 16px rgba(17,52,73,.13)}.reel:before,.reel:after{content:"";position:absolute;left:0;right:0;height:34px;z-index:2;pointer-events:none}.reel:before{top:0;background:linear-gradient(var(--wheel),transparent)}.reel:after{bottom:0;background:linear-gradient(transparent,var(--wheel))}.reel-value{height:100%;display:grid;place-items:center;color:var(--slot);font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(48px,16vw,74px);font-variant-numeric:tabular-nums}.reel-value.spinning{animation:blurSpin .13s linear infinite}@keyframes blurSpin{0%{transform:translateY(-9px);filter:blur(1px)}50%{transform:translateY(9px);filter:blur(2px)}100%{transform:translateY(-9px);filter:blur(1px)}}
+    .table-select .reels{grid-template-columns:1fr}.table-select .machine-shell{width:180px}.hint{font-weight:800;color:var(--muted)}
+    .game-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.progress-text{font-family:Fredoka,sans-serif;font-size:19px}.coin-count{background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:8px 12px;font-weight:800}.progress-track{height:12px;background:color-mix(in srgb,var(--line) 60%,transparent);border-radius:999px;overflow:hidden;margin-bottom:14px}.progress-fill{height:100%;background:var(--green);width:10%;transition:width .35s ease;border-radius:inherit}
+    .game .machine-shell{margin-top:0;margin-bottom:12px;width:100%;max-width:560px}.game .reel{height:132px}.game .reel-value{font-size:clamp(44px,14vw,68px)}
+    .answer-reel,.answer-reel *{touch-action:none}.answer-reel{position:relative;cursor:grab;user-select:none;-webkit-user-select:none}.answer-options{position:absolute;inset:0;display:flex;flex-direction:column;align-items:stretch;transition:transform .22s cubic-bezier(.2,.8,.2,1)}.answer-option{height:42px;min-height:42px;display:grid;place-items:center;color:#78909d;font-family:Fredoka,sans-serif;font-size:25px}.answer-option.center{height:42px;min-height:42px;color:var(--slot);font-size:36px}.answer-marker{position:absolute;z-index:3;left:3px;right:3px;top:40px;height:42px;border-top:3px solid var(--red);border-bottom:3px solid var(--red);pointer-events:none}.nudges{display:flex;justify-content:center;gap:12px;margin:2px 0 10px}.nudge{width:62px;height:48px;border-radius:13px;border:2px solid var(--line);background:var(--panel);color:var(--ink);font-size:24px;font-weight:900}
+    .feedback{min-height:34px;text-align:center;font-family:Fredoka,sans-serif;font-size:22px;font-weight:700;margin:2px 0 8px}.feedback.good{color:var(--green)}.feedback.try{color:var(--red)}
+    .key-answer{font-family:Fredoka,sans-serif;font-size:clamp(38px,12vw,60px)!important}.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:390px;width:100%;margin:2px auto 14px}.key{min-height:54px;border:2px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);font-family:Fredoka,sans-serif;font-size:24px;box-shadow:0 3px 0 rgba(23,52,73,.13)}.key.back{font-size:20px}.key.zero{grid-column:2}
+    .celebrate{justify-content:center;text-align:center}.coin-big{width:138px;aspect-ratio:1;border-radius:50%;margin:18px auto 24px;background:radial-gradient(circle at 35% 30%,#fff19a 0 8%,var(--yellow) 9% 56%,#e0aa13 57% 65%,#ffe981 66% 73%,#cf9410 74%);border:5px solid #b8790b;display:grid;place-items:center;color:#7b4d00;font:700 62px Fredoka;box-shadow:0 12px 0 rgba(130,81,0,.17);animation:coinWin .8s ease-out}@keyframes coinWin{0%{transform:scale(.1) rotate(-360deg)}70%{transform:scale(1.16) rotate(15deg)}100%{transform:none}}
+    .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,440px);margin:0 auto}
+    .gumball{align-items:center;text-align:center}.gumball h2{margin-bottom:4px}.machine{width:min(86vw,330px);margin:8px auto 16px;position:relative}.globe{height:310px;border:8px solid #9dc7d8;border-radius:48% 48% 40% 40%;background:linear-gradient(150deg,rgba(255,255,255,.72),rgba(181,229,247,.28));position:relative;overflow:hidden;box-shadow:inset 18px 8px 0 rgba(255,255,255,.2),var(--shadow)}.balls{position:absolute;inset:22px 14px 15px;display:flex;flex-wrap:wrap-reverse;align-content:flex-start;justify-content:center;gap:2px}.ball{width:54px;height:54px;border-radius:50%;border:4px solid currentColor;background:color-mix(in srgb,currentColor 19%,transparent);box-shadow:inset -7px -8px 0 rgba(0,0,0,.06)}.ball:nth-child(4n+1){color:#ee514c}.ball:nth-child(4n+2){color:#18a779}.ball:nth-child(4n+3){color:#e09f08}.ball:nth-child(4n){color:#298cc5}.base{width:270px;height:156px;background:var(--red);border:7px solid var(--red-dark);border-radius:16px 16px 34px 34px;margin:-10px auto 0;position:relative;box-shadow:0 12px 0 rgba(23,52,73,.14)}.coin-slot{position:absolute;left:38px;top:35px;width:55px;height:12px;background:#502c25;border-radius:8px;box-shadow:0 0 0 5px #ffc945}.turner{position:absolute;right:40px;top:26px;width:64px;height:64px;border-radius:50%;background:var(--yellow);border:6px solid #af7906}.turner:after{content:"";position:absolute;width:12px;height:70px;background:#ffe678;border:4px solid #9a6805;border-radius:8px;left:20px;top:-9px;transform:rotate(40deg)}.chute{position:absolute;left:50%;bottom:17px;transform:translateX(-50%);width:78px;height:43px;background:#702d2c;border:5px solid #a93b3b;border-radius:12px}
+    .insert{width:min(100%,330px)}.capsule-drop{display:none;width:90px;height:90px;border-radius:50%;border:5px solid #1785b8;background:linear-gradient(to bottom,rgba(255,255,255,.35) 49%,#4dc3ec 50%);margin:-28px auto 14px;position:relative;z-index:4;box-shadow:0 8px 0 rgba(23,52,73,.13);animation:drop .75s cubic-bezier(.3,.8,.35,1.2)}.capsule-drop.show{display:block}.capsule-drop:after{content:"TAP";position:absolute;inset:0;display:grid;place-items:center;font:bold 15px Fredoka;color:#0c506f}@keyframes drop{from{transform:translateY(-210px) rotate(-120deg);opacity:.2}to{transform:none;opacity:1}}
+    .slip-backdrop{position:fixed;inset:0;background:rgba(10,25,36,.63);display:none;place-items:center;padding:18px;z-index:20}.slip-backdrop.show{display:grid}.slip{width:min(100%,480px);background:#fff9d9;color:#263d48;padding:30px 24px 24px;border:2px solid #d9be67;box-shadow:0 22px 70px rgba(0,0,0,.38);transform:rotate(-1deg);animation:slipZoom .42s cubic-bezier(.2,.85,.3,1.12)}@keyframes slipZoom{from{transform:scale(.18) rotate(9deg);opacity:.3}to{transform:scale(1) rotate(-1deg);opacity:1}}.slip .question{font:700 clamp(24px,7vw,34px)/1.18 Fredoka;margin-bottom:18px}.slip .answer{font-size:21px;line-height:1.3;color:#b23b38;font-weight:800}.slip button{margin-top:24px}
+    .burst{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50}.confetti{position:absolute;top:-20px;width:12px;height:22px;border-radius:3px;animation:fall 1.5s ease-in forwards}@keyframes fall{to{transform:translateY(110vh) rotate(640deg)}}
+    @media(max-width:430px){.app{padding-left:10px;padding-right:10px}.setup-card{padding:16px}.machine-shell{padding:10px}.game .reels{grid-template-columns:1fr 30px 1fr 30px 1fr;gap:4px}.symbol{font-size:27px}.game .reel{height:122px;border-width:4px}.answer-marker{top:37px;height:40px}.answer-option{height:40px;min-height:40px}.choice-row{grid-template-columns:1fr}.globe{height:270px}.ball{width:47px;height:47px}.mode-grid{gap:7px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topline"><button class="sound" id="soundBtn" aria-label="Mute sounds" title="Mute sounds">🔊</button></div>
+
+    <section class="screen setup active" id="setupScreen">
+      <div class="setup-intro"><div class="tiny-wheels" aria-hidden="true">❶ × ❷ = ❷</div><h1>Set your wheels</h1><p>Pick how high the first number can go.</p></div>
+      <div class="setup-card">
+        <h2 class="field-title">First wheel goes up to…</h2>
+        <div class="cap-grid" id="capGrid" aria-label="Choose the highest number">
+          <button class="cap" data-cap="1">1</button><button class="cap" data-cap="2">2</button><button class="cap selected" data-cap="3">3</button><button class="cap" data-cap="4">4</button><button class="cap" data-cap="5">5</button><button class="cap" data-cap="6">6</button><button class="cap" data-cap="7">7</button><button class="cap" data-cap="8">8</button><button class="cap" data-cap="9">9</button>
+        </div>
+        <h2 class="field-title">How will you answer?</h2>
+        <div class="mode-grid">
+          <button class="mode selected" data-mode="choice"><strong>🎡 Answer wheel</strong><span>Slide to choose</span></button>
+          <button class="mode" data-mode="keypad"><strong>🔢 Number pad</strong><span>Tap the digits</span></button>
+        </div>
+        <button class="primary full" id="startBtn">Start the wheels</button>
+      </div>
+    </section>
+
+    <section class="screen table-select" id="tableScreen">
+      <h1>Spin your table!</h1><p>The first wheel will choose today’s multiplication table.</p>
+      <div class="machine-shell"><div class="reels"><div class="reel"><div class="reel-value" id="tableReel">?</div></div></div></div>
+      <button class="primary full" id="spinTableBtn">Spin the wheel</button>
+      <p class="hint" id="tableHint">Numbers 0 through 3 are in the wheel.</p>
+    </section>
+
+    <section class="screen game" id="gameScreen">
+      <div class="game-head"><div class="progress-text" id="progressText">1 of 10</div><div class="coin-count">🪙 <span class="coinValue">0</span></div></div>
+      <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="machine-shell">
+        <div class="reels">
+          <div class="reel"><div class="reel-value" id="firstReel">2</div></div><div class="symbol">×</div>
+          <div class="reel"><div class="reel-value" id="secondReel">0</div></div><div class="symbol">=</div>
+          <div class="reel answer-reel" id="choiceReel"><div class="answer-marker"></div><div class="answer-options" id="answerOptions"></div></div>
+          <div class="reel" id="keyAnswerReel" hidden><div class="reel-value key-answer" id="typedAnswer">?</div></div>
+        </div>
+      </div>
+      <div class="nudges" id="nudges"><button class="nudge" id="upBtn" aria-label="Previous answer">▲</button><button class="nudge" id="downBtn" aria-label="Next answer">▼</button></div>
+      <div class="keypad" id="keypad" hidden>
+        <button class="key" data-key="1">1</button><button class="key" data-key="2">2</button><button class="key" data-key="3">3</button>
+        <button class="key" data-key="4">4</button><button class="key" data-key="5">5</button><button class="key" data-key="6">6</button>
+        <button class="key" data-key="7">7</button><button class="key" data-key="8">8</button><button class="key" data-key="9">9</button>
+        <button class="key back" data-key="back">⌫</button><button class="key zero" data-key="0">0</button>
+      </div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <button class="primary full" id="checkBtn">Check my answer</button>
+    </section>
+
+    <section class="screen celebrate" id="winScreen">
+      <h1>You finished the round!</h1><p>Ten answers, all the way from × 0 to × 9.</p>
+      <div class="coin-big" aria-label="One coin won">1</div>
+      <h2>You won a coin!</h2>
+      <div class="choice-row"><button class="primary" id="gumballBtn">Get a joke</button><button class="secondary" id="anotherRoundBtn">Play another round</button></div>
+    </section>
+
+    <section class="screen gumball" id="gumballScreen">
+      <h2>The Joke Machine</h2><div class="coin-count">Coins: 🪙 <span class="coinValue">0</span></div>
+      <div class="machine" aria-label="A gumball machine full of colorful capsules">
+        <div class="globe"><div class="balls" id="balls"></div></div>
+        <div class="base"><div class="coin-slot"></div><div class="turner"></div><div class="chute"></div></div>
+      </div>
+      <button class="capsule-drop" id="capsule" aria-label="Open the capsule"></button>
+      <button class="primary insert" id="insertBtn">Insert 1 coin</button>
+      <button class="secondary insert" id="backToTablesBtn" style="margin-top:12px">Play again</button>
+      <p class="hint" id="coinHint"></p>
+    </section>
+  </main>
+  <div class="slip-backdrop" id="slipBackdrop" role="dialog" aria-modal="true" aria-labelledby="jokeQuestion">
+    <div class="slip"><div class="question" id="jokeQuestion"></div><div class="answer" id="jokeAnswer"></div><button class="primary full" id="closeSlip">That was funny!</button></div>
+  </div>
+  <div class="burst" id="burst"></div>
+
+  <script>
+    (function(){
+      var state={cap:3,mode:'choice',coins:0,table:0,step:0,options:[],selected:0,typed:'',muted:false,lastJoke:-1,busy:false,capsuleReady:false};
+      var jokes=[
+        ["What did the zero say to the eight?","Nice belt!"],["What do you call cheese that isn't yours?","Nacho cheese!"],["Why was the math book sad?","It had too many problems!"],["What do you call a bear with no teeth?","A gummy bear!"],["Why did the cookie go to the doctor?","Because it felt crummy!"],["What do you call a sleeping bull?","A bulldozer!"],["Why don't elephants use computers?","They're afraid of the mouse!"],["What did the grape do when it got stepped on?","It let out a little wine!"],["Why did the banana go to the doctor?","It wasn't peeling well!"],["What kind of room has no doors?","A mushroom!"],["Why did the student eat his homework?","The teacher said it was a piece of cake!"],["What do you call a dog that can do magic?","A Labracadabrador!"],["How do you catch a squirrel?","Climb a tree and act like a nut!"],["Why did the cow go to outer space?","To see the Milky Way!"],["What did one wall say to the other wall?","I'll meet you at the corner!"],["Why did the teacher wear sunglasses?","Because her students were so bright!"],["What's a math teacher's favorite dessert?","Pi!"],["Knock, knock! Who's there? Boo. Boo who?","Don't cry, it's just a joke!"],["Knock, knock! Who's there? Lettuce. Lettuce who?","Lettuce in, it's cold out here!"],["Knock, knock! Who's there? Orange. Orange who?","Orange you glad I didn't say banana!"],["Knock, knock! Who's there? Tank. Tank who?","You're welcome!"],["Why did the tomato blush?","It saw the salad dressing!"],["What do you get when you cross a snowman and a vampire?","Frostbite!"],["Why did the dinosaur cross the road?","Because the chicken joke wasn't invented yet!"]
+      ];
+      var $=function(s){return document.querySelector(s)}, $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+      var screens=$$('.screen');
+      function show(id){document.body.classList.toggle('game-active',id==='gameScreen');screens.forEach(function(s){s.classList.toggle('active',s.id===id)});window.scrollTo(0,0)}
+      function updateCoins(){$$('.coinValue').forEach(function(el){el.textContent=state.coins})}
+      function tone(freq,dur,type){if(state.muted)return;try{var A=window.AudioContext||window.webkitAudioContext;var c=tone.ctx||(tone.ctx=new A());if(c.state==='suspended')c.resume();var o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(.09,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+dur)}catch(e){}}
+      function tick(){tone(190,.045,'square')} function good(){tone(523,.09);setTimeout(function(){tone(659,.12)},90)} function soft(){tone(220,.08,'sine')}
+      function spin(el,min,max,target,done){state.busy=true;el.classList.add('spinning');var n=0,total=18+Math.floor(Math.random()*8);var timer=setInterval(function(){el.textContent=min+Math.floor(Math.random()*(max-min+1));tick();n++;if(n>=total){clearInterval(timer);el.textContent=target;el.classList.remove('spinning');state.busy=false;tone(420,.12,'triangle');if(done)done()}},55)}
+      $$('.cap').forEach(function(b){b.addEventListener('click',function(){$$('.cap').forEach(function(x){x.classList.remove('selected')});b.classList.add('selected');state.cap=+b.dataset.cap;tick()})});
+      $$('.mode').forEach(function(b){b.addEventListener('click',function(){$$('.mode').forEach(function(x){x.classList.remove('selected')});b.classList.add('selected');state.mode=b.dataset.mode;tick()})});
+      $('#soundBtn').addEventListener('click',function(){state.muted=!state.muted;this.textContent=state.muted?'🔇':'🔊';this.setAttribute('aria-label',state.muted?'Turn sounds on':'Mute sounds');if(!state.muted)good()});
+      $('#startBtn').addEventListener('click',function(){$('#tableHint').textContent='Numbers 0 through '+state.cap+' are in the wheel.';$('#tableReel').textContent='?';show('tableScreen');tick()});
+      $('#spinTableBtn').addEventListener('click',function(){if(state.busy)return;var target=Math.floor(Math.random()*(state.cap+1));this.disabled=true;spin($('#tableReel'),0,state.cap,target,function(){state.table=target;setTimeout(beginRound,500)})});
+      function beginRound(){state.step=0;state.typed='';$('#spinTableBtn').disabled=false;$('#firstReel').textContent=state.table;$('#secondReel').textContent=0;$('#feedback').textContent='';var choice=state.mode==='choice';$('#choiceReel').hidden=!choice;$('#nudges').hidden=!choice;$('#keyAnswerReel').hidden=choice;$('#keypad').hidden=choice;show('gameScreen');prepareQuestion(false)}
+      function distractors(answer){var set={};set[answer]=true;var arr=[answer];var candidates=[answer+state.table,answer-state.table,answer+state.step,answer-state.step,answer+1,answer-1,state.step*(state.table+1),Math.max(0,(state.step-1)*state.table)];candidates.forEach(function(n){if(n>=0&&n<=81&&!set[n]&&arr.length<5){set[n]=true;arr.push(n)}});while(arr.length<5){var n=Math.floor(Math.random()*82);if(!set[n]){set[n]=true;arr.push(n)}}return arr.sort(function(){return Math.random()-.5})}
+      function prepareQuestion(animate){state.typed='';$('#typedAnswer').textContent='?';$('#feedback').textContent='';$('#feedback').className='feedback';$('#progressText').textContent=(state.step+1)+' of 10';$('#progressFill').style.width=((state.step+1)*10)+'%';var finish=function(){if(state.mode==='choice'){state.options=distractors(state.table*state.step);state.selected=Math.floor(state.options.length/2);renderOptions()}};if(animate)spin($('#secondReel'),0,9,state.step,finish);else{$('#secondReel').textContent=state.step;finish()}}
+      function renderOptions(){var box=$('#answerOptions');box.innerHTML='';state.options.forEach(function(n,i){var d=document.createElement('div');d.className='answer-option'+(i===state.selected?' center':'');d.textContent=n;box.appendChild(d)});box.style.transform='translateY('+(42-(state.selected*42))+'px)'}
+      function moveChoice(delta){if(state.busy)return;state.selected=Math.max(0,Math.min(state.options.length-1,state.selected+delta));renderOptions();tick()}
+      $('#upBtn').addEventListener('click',function(){moveChoice(-1)});$('#downBtn').addEventListener('click',function(){moveChoice(1)});
+      var dragY=null,dragTime=0;
+      $('#choiceReel').addEventListener('pointerdown',function(e){e.preventDefault();dragY=e.clientY;dragTime=Date.now();this.setPointerCapture(e.pointerId)});
+      $('#choiceReel').addEventListener('pointermove',function(e){if(dragY!==null)e.preventDefault()},{passive:false});
+      $('#choiceReel').addEventListener('pointerup',function(e){if(dragY===null)return;e.preventDefault();var dy=e.clientY-dragY;var quick=Date.now()-dragTime<250;if(Math.abs(dy)>12)moveChoice(dy<0?(quick&&Math.abs(dy)>45?2:1):(quick&&Math.abs(dy)>45?-2:-1));dragY=null});
+      $('#choiceReel').addEventListener('pointercancel',function(){dragY=null});
+      $('#choiceReel').addEventListener('wheel',function(e){e.preventDefault();moveChoice(e.deltaY>0?1:-1)},{passive:false});
+      $$('.key').forEach(function(b){b.addEventListener('click',function(){var k=b.dataset.key;if(k==='back')state.typed=state.typed.slice(0,-1);else if(state.typed.length<2)state.typed=(state.typed==='0'?'':state.typed)+k;$('#typedAnswer').textContent=state.typed||'?';tick()})});
+      $('#checkBtn').addEventListener('click',function(){if(state.busy)return;var given=state.mode==='choice'?state.options[state.selected]:Number(state.typed);var correct=state.table*state.step;if(state.mode==='keypad'&&!state.typed){$('#feedback').textContent='Tap your answer first.';$('#feedback').className='feedback try';soft();return}if(given===correct){$('#feedback').textContent=['You got it!','Nice work!','That’s right!','Wheel done!'][state.step%4];$('#feedback').className='feedback good';good();state.busy=true;setTimeout(function(){state.busy=false;if(state.step===9)winRound();else{state.step++;prepareQuestion(true)}},650)}else{$('#feedback').textContent='Almost — try again!';$('#feedback').className='feedback try';soft()}});
+      function confetti(){var host=$('#burst'),colors=['#ef5a55','#ffd84d','#2faa74','#2b91cd'];host.innerHTML='';for(var i=0;i<34;i++){var c=document.createElement('i');c.className='confetti';c.style.left=Math.random()*100+'%';c.style.background=colors[i%colors.length];c.style.animationDelay=Math.random()*.45+'s';host.appendChild(c)}setTimeout(function(){host.innerHTML=''},2100)}
+      function winRound(){state.coins++;updateCoins();show('winScreen');confetti();good()}
+      $('#gumballBtn').addEventListener('click',openMachine);$('#anotherRoundBtn').addEventListener('click',function(){show('tableScreen')});$('#backToTablesBtn').addEventListener('click',function(){show('tableScreen')});
+      function openMachine(){state.capsuleReady=false;$('#capsule').classList.remove('show');$('#insertBtn').hidden=false;updateMachine();show('gumballScreen')}
+      function updateMachine(){updateCoins();$('#insertBtn').disabled=state.coins<1;$('#insertBtn').textContent=state.coins?'Insert 1 coin':'No coins left';$('#coinHint').textContent=state.coins?'One coin makes one joke capsule.':'Finish another round to earn a coin.'}
+      $('#insertBtn').addEventListener('click',function(){if(state.coins<1||state.capsuleReady)return;state.coins--;state.capsuleReady=true;updateMachine();this.hidden=true;tone(330,.1,'square');setTimeout(function(){$('#capsule').classList.add('show');tone(460,.14,'triangle')},220)});
+      $('#capsule').addEventListener('click',function(){if(!state.capsuleReady)return;var idx;do{idx=Math.floor(Math.random()*jokes.length)}while(jokes.length>1&&idx===state.lastJoke);state.lastJoke=idx;$('#jokeQuestion').textContent=jokes[idx][0];$('#jokeAnswer').textContent=jokes[idx][1];$('#slipBackdrop').classList.add('show');state.capsuleReady=false;good()});
+      $('#closeSlip').addEventListener('click',function(){$('#slipBackdrop').classList.remove('show');$('#capsule').classList.remove('show');$('#insertBtn').hidden=false;updateMachine()});
+      var balls=$('#balls');for(var i=0;i<24;i++){var b=document.createElement('span');b.className='ball';balls.appendChild(b)}
+      updateCoins();
+    })();
+  </script>
+</body>
+</html>
